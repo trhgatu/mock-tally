@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 
 import { TallyRecord, TallyConfig, TallyMethod } from '../types';
-import { MOCK_HOLDS, CARGO_TYPES, MOCK_VEHICLES } from '../constants';
+import { MOCK_HOLDS, MOCK_VEHICLES } from '../constants';
 
 interface MainGridProps {
   records: TallyRecord[];
@@ -16,27 +16,25 @@ interface MainGridProps {
   onRefresh: () => void;
 }
 
-const getMethodLabel = (m: TallyMethod) => {
-  switch (m) {
-    case 'AVERAGE': return 'Trung bình';
-    case 'STANDARD': return 'Quy cách';
-    case 'MARK': return 'Mark';
-    case 'ID': return 'Mã ID';
-    case 'SCALE': return 'Cân';
-    case 'MANUAL': return 'Nhập tay';
-    case 'UNSPECIFIED': return 'Chọn';
-    default: return m;
-  }
-};
 
 export const MainGrid: React.FC<MainGridProps> = ({
   records, activeHoldId, operationMode, onUpdateRecord, onRefresh
 }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const displayedRecords = records
+    .filter(r => r.operationMode === operationMode && r.holdId === activeHoldId)
+    .filter(r => {
+      if (!searchTerm) return true;
+      const term = searchTerm.toLowerCase();
+      return (
+        r.billOfLading?.toLowerCase().includes(term) ||
+        r.yardLocation?.toLowerCase().includes(term) ||
+        r.truckNo?.toLowerCase().includes(term) ||
+        r.trailerNo?.toLowerCase().includes(term) ||
+        r.cargoName?.toLowerCase().includes(term)
+      );
+    });
 
-  // Filter based on mode + hold
-  const displayedRecords = records.filter(
-    r => r.operationMode === operationMode && r.holdId === activeHoldId
-  );
 
   // visibility logic
   const isDirect = operationMode.includes('giao thẳng') || operationMode.includes('Tàu -> xe');
@@ -47,6 +45,7 @@ export const MainGrid: React.FC<MainGridProps> = ({
   const [vehicleColumnType, setVehicleColumnType] = useState<'TRUCK' | 'TRAILER'>('TRUCK');
   const [selectedVehicleString, setSelectedVehicleString] = useState('');
   const [vehicleSearchTerm, setVehicleSearchTerm] = useState('');
+
 
   // Yard location history popup
   const [historyLocation, setHistoryLocation] = useState<string | null>(null);
@@ -145,8 +144,8 @@ export const MainGrid: React.FC<MainGridProps> = ({
                     key={i}
                     onClick={() => setSelectedVehicleString(value)}
                     className={`p-3 border rounded cursor-pointer ${selectedVehicleString === value
-                        ? 'border-green-600 bg-green-50'
-                        : 'border-slate-200 hover:border-green-400'
+                      ? 'border-green-600 bg-green-50'
+                      : 'border-slate-200 hover:border-green-400'
                       }`}
                   >
                     <span className="font-bold">{value}</span>
@@ -245,13 +244,25 @@ export const MainGrid: React.FC<MainGridProps> = ({
           </span>
         </div>
 
-        <button
-          onClick={onRefresh}
-          className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded flex items-center gap-1 text-xs"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Tải lại
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Search bar */}
+          <input
+            type="text"
+            placeholder="Tìm BL / xe / mooc / bãi..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="text-xs px-2 py-1 border border-slate-300 rounded w-[180px] focus:border-blue-500 focus:ring-1 focus:ring-blue-200 outline-none"
+          />
+
+          {/* Refresh button */}
+          <button
+            onClick={onRefresh}
+            className="p-1.5 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded flex items-center gap-1 text-xs"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Tải lại
+          </button>
+        </div>
       </div>
 
       {/* DATA TABLE */}
@@ -273,6 +284,7 @@ export const MainGrid: React.FC<MainGridProps> = ({
               <th className="p-3 border-b border-r min-w-[60px] text-center">Kiện</th>
               <th className="p-3 border-b border-r min-w-[80px] text-center">PCS</th>
               <th className="p-3 border-b min-w-[80px] text-center">Rời</th>
+              <th className="p-3 font-bold border-b border-r border-slate-200 w-[110px] bg-blue-100 text-blue-800 text-right">Trọng lượng</th>
               <th className="p-3 border-b w-[90px] text-center">Xác nhận</th>
             </tr>
           </thead>
@@ -336,8 +348,8 @@ export const MainGrid: React.FC<MainGridProps> = ({
                         handleValueChange(record.id, 'tallyMethod', e.target.value as TallyMethod)
                       }
                       className={`w-full bg-white text-xs font-bold px-2 py-1 rounded border outline-none ${record.confirmed
-                          ? 'cursor-not-allowed border-slate-200 text-slate-400'
-                          : 'border-indigo-300 text-indigo-700'
+                        ? 'cursor-not-allowed border-slate-200 text-slate-400'
+                        : 'border-indigo-300 text-indigo-700'
                         }`}
                     >
                       <option value="UNSPECIFIED">Chọn</option>
@@ -364,8 +376,8 @@ export const MainGrid: React.FC<MainGridProps> = ({
                     <div
                       onClick={() => openVehiclePopup(record, 'TRUCK')}
                       className={`px-2 py-1 border rounded cursor-pointer ${record.confirmed
-                          ? 'bg-slate-50 cursor-not-allowed border-slate-200'
-                          : 'hover:border-blue-400 bg-white border-slate-300'
+                        ? 'bg-slate-50 cursor-not-allowed border-slate-200'
+                        : 'hover:border-blue-400 bg-white border-slate-300'
                         }`}
                     >
                       {record.truckNo || (
@@ -382,8 +394,8 @@ export const MainGrid: React.FC<MainGridProps> = ({
                     <div
                       onClick={() => openVehiclePopup(record, 'TRAILER')}
                       className={`px-2 py-1 border rounded cursor-pointer ${record.confirmed
-                          ? 'bg-slate-50 cursor-not-allowed'
-                          : 'hover:border-blue-400 bg-white border-slate-300'
+                        ? 'bg-slate-50 cursor-not-allowed'
+                        : 'hover:border-blue-400 bg-white border-slate-300'
                         }`}
                     >
                       {record.trailerNo || (
@@ -433,6 +445,13 @@ export const MainGrid: React.FC<MainGridProps> = ({
                       className={`w-full bg-transparent outline-none text-center ${inputClass}`}
                     />
                   </td>
+                  <td className="p-2 border-r text-right text-blue-600 font-bold bg-blue-50">
+                    {(
+                      ((record.packs || 0) + (record.loose || 0) + (record.pcs || 0)) *
+                      (record.unitWeight || 0)
+                    ).toFixed(3)}
+                  </td>
+
 
                   {/* Confirm */}
                   <td className="p-2 text-center">
