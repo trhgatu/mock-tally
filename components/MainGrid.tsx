@@ -21,6 +21,8 @@ export const MainGrid: React.FC<MainGridProps> = ({
   records, activeHoldId, operationMode, onUpdateRecord, onRefresh
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [showInfo, setShowInfo] = useState(false);
+
   const displayedRecords = records
     .filter(r => r.operationMode === operationMode && r.holdId === activeHoldId)
     .filter(r => {
@@ -39,13 +41,13 @@ export const MainGrid: React.FC<MainGridProps> = ({
   // visibility logic
   const isDirect = operationMode.includes('giao thẳng') || operationMode.includes('Tàu -> xe');
   const isYard = operationMode.includes('Nhập bãi');
+  const isExport = operationMode.includes('Xuất');
 
   // Vehicle picker popup
   const [vehiclePopupRecordId, setVehiclePopupRecordId] = useState<string | null>(null);
   const [vehicleColumnType, setVehicleColumnType] = useState<'TRUCK' | 'TRAILER'>('TRUCK');
   const [selectedVehicleString, setSelectedVehicleString] = useState('');
   const [vehicleSearchTerm, setVehicleSearchTerm] = useState('');
-
 
   // Yard location history popup
   const [historyLocation, setHistoryLocation] = useState<string | null>(null);
@@ -110,8 +112,6 @@ export const MainGrid: React.FC<MainGridProps> = ({
 
   return (
     <div className="flex flex-col h-full bg-white rounded-lg shadow-sm border border-slate-200 relative">
-
-      {/* VEHICLE SELECT MODAL */}
       {vehiclePopupRecordId && (
         <div className="absolute inset-0 z-50 bg-black/25 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl border border-slate-300 w-[400px] max-h-[80vh] flex flex-col">
@@ -167,8 +167,6 @@ export const MainGrid: React.FC<MainGridProps> = ({
           </div>
         </div>
       )}
-
-      {/* LOCATION HISTORY MODAL */}
       {historyLocation && (
         <div className="absolute inset-0 z-50 bg-black/25 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-lg w-[600px] max-h-[80vh] shadow-xl flex flex-col border border-slate-300">
@@ -270,8 +268,11 @@ export const MainGrid: React.FC<MainGridProps> = ({
         <table className="w-full border-collapse text-sm whitespace-nowrap">
           <thead className="bg-slate-100 text-slate-500 uppercase text-xs sticky top-0">
             <tr>
-              {isDirect && (
+              {isDirect && !isExport && (
                 <th className="p-3 border-b border-r min-w-[120px]">Số vận đơn</th>
+              )}
+              {isExport && (
+                <th className="p-3 border-b border-r min-w-[120px]">Số tờ khai</th>
               )}
               {isYard && (
                 <th className="p-3 border-b border-r min-w-[140px]">Vị trí bãi</th>
@@ -299,7 +300,7 @@ export const MainGrid: React.FC<MainGridProps> = ({
                 <tr key={record.id} className="border-b hover:bg-blue-50">
 
                   {/* BL / Yard */}
-                  {isDirect && (
+                  {isDirect && !isExport && (
                     <td className="p-2 border-r">
                       <input
                         type="text"
@@ -307,6 +308,20 @@ export const MainGrid: React.FC<MainGridProps> = ({
                         value={record.billOfLading}
                         onChange={e =>
                           handleValueChange(record.id, 'billOfLading', e.target.value)
+                        }
+                        className={`w-full bg-transparent outline-none font-bold ${inputClass}`}
+                      />
+                    </td>
+                  )}
+
+                  {isExport && (
+                    <td className="p-2 border-r">
+                      <input
+                        type="text"
+                        readOnly={record.confirmed}
+                        value={record.declarationNo}
+                        onChange={e =>
+                          handleValueChange(record.id, 'declarationNo', e.target.value)
                         }
                         className={`w-full bg-transparent outline-none font-bold ${inputClass}`}
                       />

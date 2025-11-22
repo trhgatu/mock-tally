@@ -59,12 +59,44 @@ export const OPERATION_MODES = [
   }
 ];
 
-export const INITIAL_TALLY_RECORDS: TallyRecord[] = Array.from({ length: 35 }, (_, i) => {
+export const INITIAL_TALLY_RECORDS: TallyRecord[] = Array.from({ length: 120 }, (_, i) => {
   // Logic to create mixed data for demonstration
-  // Rows 0-12: Direct Delivery (Giao thẳng)
-  // Rows 13-24: Yard Import (Nhập bãi)
-  const isDirect = i < 15;
-  const opMode = isDirect ? 'Nhập giao thẳng Tàu -> xe' : 'Nhập bãi';
+  const opModeKey = i % 6;
+  let opMode = '';
+  let isDirect = false;
+  let isExport = false;
+  let isBarge = false;
+
+  switch (opModeKey) {
+    case 0:
+      opMode = 'Nhập giao thẳng Tàu -> xe';
+      isDirect = true;
+      break;
+    case 1:
+      opMode = 'Nhập bãi';
+      break;
+    case 2:
+      opMode = 'Xuất thông thường (Bãi -> Tàu)';
+      isExport = true;
+      break;
+    case 3:
+      opMode = 'Xuất giao thẳng (Xe -> Tàu)';
+      isDirect = true;
+      isExport = true;
+      break;
+    case 4:
+      opMode = 'Nhập giao thẳng Tàu -> sà lan';
+      isDirect = true;
+      isBarge = true;
+      break;
+    case 5:
+      opMode = 'Xuất giao thẳng (Sà lan -> Tàu)';
+      isDirect = true;
+      isExport = true;
+      isBarge = true;
+      break;
+  }
+
 
   // Distribute across 4 holds
   const holdIndex = i % 4; // 0, 1, 2, 3
@@ -80,9 +112,9 @@ export const INITIAL_TALLY_RECORDS: TallyRecord[] = Array.from({ length: 35 }, (
 
   return {
     id: `T${1000 + i}`,
-    timestamp: `08:${10 + i}`,
-    // Direct has BL, No Yard. Yard has Yard, No BL.
-    billOfLading: isDirect ? `BL-00${200 + i}` : '',
+    timestamp: `08:${10 + (i % 40)}`,
+    billOfLading: (isDirect && !isExport) ? `BL-00${200 + i}` : '',
+    declarationNo: isExport ? `TK-${300 + i}`: '',
     yardLocation: !isDirect ? `Bãi A${(i % 3) + 1}` : '',
 
     tallyMethod: isUnconfirmed ? 'UNSPECIFIED' : (isDirect ? 'AVERAGE' : 'STANDARD'),
@@ -91,10 +123,8 @@ export const INITIAL_TALLY_RECORDS: TallyRecord[] = Array.from({ length: 35 }, (
     pcs: 0,
     loose: 0,
 
-    // For UNCONFIRMED records: Empty (User must select)
-    // For CONFIRMED records: Pre-filled
-    truckNo: isUnconfirmed ? '' : (isDirect ? `15C-${100 + i}.88` : ''),
-    trailerNo: isUnconfirmed ? '' : (isDirect ? `15R-${800 + i}.99` : ''),
+    truckNo: isUnconfirmed ? (isBarge ? 'BARGE-01' : `15C-${100 + i}.88`) : (isBarge ? 'BARGE-02' : `15C-${200+i}.99`),
+    trailerNo: isUnconfirmed ? '' : (isBarge ? '' : `15R-${800 + i}.99`),
 
     holdId: holdId,
     cargoName: 'Tole nóng',
@@ -103,10 +133,9 @@ export const INITIAL_TALLY_RECORDS: TallyRecord[] = Array.from({ length: 35 }, (
     holdForklift: 'Xe nâng 01',
     craneForklift: 'Xe nâng 05',
     workerTeam: 'Tổ 1',
-    // Net = Packs * Pcs * Unit (Ton)
     net: parseFloat((packs * pcs * unitWeight).toFixed(3)),
-    type: 'DISCHARGE',
-    confirmed: !isUnconfirmed, // First 10 are false, rest are true
+    type: isExport ? 'LOAD' : 'DISCHARGE',
+    confirmed: !isUnconfirmed,
     notes: ''
   };
 });

@@ -31,6 +31,7 @@ export interface TallyRecord {
   
   // Identity
   billOfLading: string; // Số vận đơn
+  declarationNo: string; // Số tờ khai
   
   // Method & Calc
   tallyMethod: TallyMethod;
