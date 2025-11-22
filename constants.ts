@@ -65,11 +65,11 @@ export const INITIAL_TALLY_RECORDS: TallyRecord[] = Array.from({ length: 35 }, (
   // Rows 13-24: Yard Import (Nhập bãi)
   const isDirect = i < 15;
   const opMode = isDirect ? 'Nhập giao thẳng Tàu -> xe' : 'Nhập bãi';
-  
+
   // Distribute across 4 holds
   const holdIndex = i % 4; // 0, 1, 2, 3
   const holdId = `H${holdIndex + 1}`;
-  
+
   // Unit weight in tons (e.g. 0.05T = 50kg)
   const unitWeight = 0.05;
   const packs = 20 + (i % 5);
@@ -82,22 +82,22 @@ export const INITIAL_TALLY_RECORDS: TallyRecord[] = Array.from({ length: 35 }, (
     id: `T${1000 + i}`,
     timestamp: `08:${10 + i}`,
     // Direct has BL, No Yard. Yard has Yard, No BL.
-    billOfLading: isDirect ? `BL-00${200 + i}` : '', 
+    billOfLading: isDirect ? `BL-00${200 + i}` : '',
     yardLocation: !isDirect ? `Bãi A${(i % 3) + 1}` : '',
-    
+
     tallyMethod: isUnconfirmed ? 'UNSPECIFIED' : (isDirect ? 'AVERAGE' : 'STANDARD'),
     unitWeight: unitWeight,
-    packs: packs,
-    pcs: pcs,
+    packs: 0,
+    pcs: 0,
     loose: 0,
-    
+
     // For UNCONFIRMED records: Empty (User must select)
     // For CONFIRMED records: Pre-filled
     truckNo: isUnconfirmed ? '' : (isDirect ? `15C-${100 + i}.88` : ''),
     trailerNo: isUnconfirmed ? '' : (isDirect ? `15R-${800 + i}.99` : ''),
-    
+
     holdId: holdId,
-    cargoName: 'Than',
+    cargoName: 'Tole nóng',
     operationMode: opMode,
     shoreCrane: 'Cẩu bờ 01',
     holdForklift: 'Xe nâng 01',
